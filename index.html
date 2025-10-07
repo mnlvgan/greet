@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy 21st Birthday Biancakes ❤️</title>
+  <style>
+    :root {
+      --bg1: #ffd1dc;
+      --bg2: #ff8fab;
+      --bg3: #ff4d6d;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+      font-family: 'Poppins', system-ui, Arial, sans-serif;
+      color: #fff;
+    }
+
+    .stage {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    img {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25), 0 0 30px rgba(255, 255, 255, 0.08);
+      animation: pop 1200ms cubic-bezier(.2, .9, .3, 1) forwards;
+      position: relative;
+      z-index: 4;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      margin: 0;
+      padding: 0 18px;
+      line-height: 1.05;
+      animation: fadeIn 900ms ease-out forwards, glow 2s ease-in-out infinite alternate, floatText 4s ease-in-out infinite;
+      position: relative;
+      z-index: 4;
+      background: linear-gradient(90deg, #fff, #ffe6ec, #ffb6c1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 18px rgba(255, 77, 109, 0.9); }
+      to { text-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 40px rgba(255, 77, 109, 0.95); }
+    }
+
+    @keyframes floatText {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    canvas {
+      position: fixed;
+      left: 0;
+      top: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @media (max-width: 520px) {
+      img { width: 180px; height: 180px; }
+      h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="stage" role="main" aria-live="polite">
+    <img src="picture.jpg" alt="Birthday picture (place picture.png next to index.html)">
+    <h1 id="message">Happy 21st Birthday Biancakes &lt;3</h1>
+  </div>
+
+  <audio id="music" src="happybirthday-placeholder.mp3" loop></audio>
+
+  <script>
+  (function() {
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    let W = window.innerWidth, H = window.innerHeight;
+
+    function resize() {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      W = window.innerWidth; H = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    const COLORS = ['#ff4d6d', '#ff8fab', '#ffc1d3', '#ffe6ec', '#fff0f6'];
+
+    class Confetti {
+      constructor(mode = 'rain') {
+        this.mode = mode;
+        this.reset(true);
+      }
+
+      reset(start = false) {
+        if (this.mode === 'rain') {
+          this.x = Math.random() * W;
+          this.y = Math.random() * -H;
+          this.s = Math.random() * 8 + 6;
+          this.c = COLORS[Math.floor(Math.random() * COLORS.length)];
+          this.vx = Math.random() * 1.4 - 0.7;
+          this.vy = Math.random() * 3 + 2;
+          this.rot = Math.random() * Math.PI * 2;
+          this.spin = Math.random() * 0.06 - 0.03;
+          this.opacity = Math.random() * 0.8 + 0.2;
+          this.shape = Math.random() > 0.5 ? 'circle' : 'square';
+        } else {
+          const leftSide = this.mode === 'blow-left';
+          this.x = leftSide ? Math.random() * W * 0.15 : W - Math.random() * W * 0.15;
+          this.y = H - 40;
+          this.s = Math.random() * 14 + 10;
+          this.c = COLORS[Math.floor(Math.random() * COLORS.length)];
+          this.vx = leftSide ? Math.random() * 5 + 3 : -Math.random() * 5 - 3;
+          this.vy = -Math.random() * 12 - 6;
+          this.rot = Math.random() * Math.PI * 2;
+          this.spin = Math.random() * 0.3 - 0.15;
+          this.opacity = 1;
+          this.shape = Math.random() > 0.5 ? 'circle' : 'square';
+        }
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += (this.mode === 'rain') ? 0.1 : 0.4;
+        this.rot += this.spin;
+        if (this.x < -80 || this.x > W + 80 || this.y > H + 80) this.reset(false);
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rot);
+        ctx.fillStyle = this.c;
+        if (this.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(0, 0, this.s / 2, 0, 2 * Math.PI);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-this.s / 2, -this.s / 2, this.s, this.s);
+        }
+        ctx.restore();
+      }
+    }
+
+    let confetti = [];
+    const rainCount = 240;
+    for (let i = 0; i < rainCount; i++) confetti.push(new Confetti('rain'));
+
+    function blowBurst() {
+      for (let i = 0; i < 25; i++) {
+        confetti.push(new Confetti('blow-left'));
+        confetti.push(new Confetti('blow-right'));
+      }
+      setTimeout(() => {
+        confetti = confetti.filter(c => !c.mode.startsWith('blow'));
+      }, 4000);
+    }
+
+    setInterval(blowBurst, 5000);
+
+    function animate() {
+      ctx.clearRect(0, 0, W, H);
+      confetti.forEach(c => { c.update(); c.draw(); });
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+    blowBurst();
+
+    const music = document.getElementById('music');
+    music.volume = 0.5;
+    music.play().catch(err => console.log('Autoplay prevented:', err));
+  })();
+  </script>
+</body>
+  <!--
+  Deployment Instructions:
+  1. Create a folder containing this index.html file, your picture.png, and (optionally) happybirthday-placeholder.mp3.
+  2. Push the folder to a new GitHub repository.
+  3. In the GitHub repository, go to Settings → Pages → Branch: main → / (root) → Save.
+  4. After about a minute, GitHub Pages will provide a link to view the live page.
+  5. You can also preview locally by opening index.html in your browser.
+  -->
+</html>
